@@ -1,0 +1,5 @@
+{
+  "name": "Légiscribe OCR",
+  "description": "Outil d'OCR intelligent pour extraire le texte des documents juridiques et archives (Gallica, PDF images).",
+  "requestFramePermissions": []
+}
