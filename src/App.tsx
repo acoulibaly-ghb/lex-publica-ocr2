@@ -277,6 +277,7 @@ export default function App() {
 };
 
 
+
   const copyToClipboard = () => {
     if (result) {
       navigator.clipboard.writeText(result.text);
