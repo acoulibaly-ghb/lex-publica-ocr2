@@ -218,22 +218,48 @@ export default function App() {
       const textContent = await page.getTextContent();
 
       // Extraire le texte avec des sauts de ligne naturels
+      // Extraire le texte avec détection intelligente des paragraphes
       let pageText = "";
       let lastY = -1;
-      let lastFontSize = 0;
+      let lineSpacings: number[] = [];
+
+      // Premier passage : calculer l'interligne moyen
       for (const item of textContent.items) {
         if (item.str && item.transform) {
           const currentY = item.transform[5];
-          const currentFontSize = item.height; // Approximation de la taille de la police
+          if (lastY !== -1) {
+            const gap = Math.abs(currentY - lastY);
+            if (gap > 1 && gap < 100) {
+              lineSpacings.push(gap);
+            }
+          }
+          lastY = currentY;
+        }
+      }
 
-          // Ajouter un saut de ligne si la différence de position verticale est significative
-          // ou si la taille de la police a changé (nouveau paragraphe)
-          if (lastY !== -1 && (Math.abs(currentY - lastY) > 3 || Math.abs(currentFontSize - lastFontSize) > 1)) {
-            pageText += "\n";
+      // Calculer l'interligne médian
+      lineSpacings.sort((a, b) => a - b);
+      const medianSpacing = lineSpacings.length > 0
+        ? lineSpacings[Math.floor(lineSpacings.length / 2)]
+        : 12;
+      const paragraphThreshold = medianSpacing * 1.8;
+
+      // Deuxième passage : extraire le texte avec la bonne logique
+      lastY = -1;
+      for (const item of textContent.items) {
+        if (item.str && item.transform) {
+          const currentY = item.transform[5];
+
+          if (lastY !== -1) {
+            const gap = Math.abs(currentY - lastY);
+            if (gap > paragraphThreshold) {
+              pageText += "\n\n";
+            } else if (gap > 1) {
+              pageText += "\n";
+            }
           }
           pageText += item.str + " ";
           lastY = currentY;
-          lastFontSize = currentFontSize;
         }
       }
       fullText += pageText.trim() + "\n\n"; // Ajouter un double saut de ligne entre les pages
