@@ -608,14 +608,14 @@ export default function App() {
               {children}
             </pre>
           ),
+          // Ajouter des composants pour les titres
           h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 mt-6">{children}</h1>,
           h2: ({ children }) => <h2 className="text-xl font-bold mb-3 mt-5">{children}</h2>,
           h3: ({ children }) => <h3 className="text-lg font-bold mb-2 mt-4">{children}</h3>,
+          // Ajouter des composants pour les listes
           ul: ({ children }) => <ul className="list-disc pl-5 mb-4">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal pl-5 mb-4">{children}</ol>,
           li: ({ children }) => <li className="mb-2">{children}</li>,
-          // Ajoute un composant pour les sauts de ligne simples
-          br: () => <br className="block my-2" />,
         }}
       >
         {result.text}
