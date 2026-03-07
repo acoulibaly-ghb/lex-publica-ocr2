@@ -168,6 +168,7 @@ export default function App() {
 };
 
 
+
   const processOCR = async () => {
   if (files.length === 0) return;
 
