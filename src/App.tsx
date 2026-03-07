@@ -158,18 +158,26 @@ export default function App() {
 
   const cleanText = (text: string) => {
   return text
+    // Nettoyage des artefacts OCR
     .replace(/1ᵉʳ/g, "1er")
     .replace(/2ᵉ/g, "2e")
     .replace(/—/g, "-")
     .replace(/\[img-\d+\.jpeg\]/g, "")
-    // Remplacer les sauts de ligne multiples par des doubles sauts de ligne
-    .replace(/\n\s*\n\s*\n/g, '\n\n')
-    // Remplacer les sauts de ligne simples par des espaces, sauf s'ils sont suivis d'une majuscule ou d'un chiffre
-    .replace(/\n([a-z])/g, ' $1')
-    .replace(/\n(\d)/g, ' $1')
-    // Conserver les sauts de ligne avant les titres et les paragraphes
-    .replace(/\n\s*([A-Z][A-Z\s]+:)/g, '\n\n$1')
-    .replace(/\n\s*(\d+\.)/g, '\n\n$1');
+    // 1. Réunir les mots coupés par un trait d'union en fin de ligne
+    .replace(/-\s*\n\s*/g, "")
+    // 2. Normaliser les sauts multiples (3+) en double saut (= séparateur de paragraphe)
+    .replace(/(\s*\n\s*){3,}/g, "\n\n")
+    // 3. Découper en paragraphes (séparés par des lignes vides)
+    .split(/\n\n/)
+    .map(paragraph =>
+      // Dans chaque paragraphe, fusionner les sauts de ligne simples en espaces
+      paragraph
+        .replace(/\n/g, " ")
+        .replace(/\s{2,}/g, " ")
+        .trim()
+    )
+    .filter(p => p.length > 0)
+    .join("\n\n");
 };
 
 
