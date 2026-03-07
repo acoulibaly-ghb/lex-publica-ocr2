@@ -663,36 +663,6 @@ export default function App() {
           </p>
         </div>
       </footer>
-      // Ajoute ceci à la fin de ton fichier App.tsx, juste avant la balise </div> de fermeture
-<style jsx global>{`
-  .markdown-body {
-    line-height: 1.6;
-  }
-  .markdown-body p {
-    margin-bottom: 1rem;
-  }
-  .markdown-body pre {
-    white-space: pre-wrap;
-    word-break: break-word;
-    background-color: #f3f4f6;
-    padding: 1rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
-  }
-  .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  .markdown-body ul, .markdown-body ol {
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-  }
-  .markdown-body li {
-    margin-bottom: 0.5rem;
-  }
-`}
-</style>
-
-    </div>
+      </div>
   );
 }
