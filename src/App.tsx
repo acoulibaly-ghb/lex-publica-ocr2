@@ -157,17 +157,21 @@ export default function App() {
   };
 
   const cleanText = (text: string) => {
-  // Remplacer les sauts de ligne simples par deux espaces pour Markdown
-  const withLineBreaks = text.replace(/([^\n])\n([^\n])/g, '$1  \n$2');
-
-  return withLineBreaks
+  return text
     .replace(/1ᵉʳ/g, "1er")
     .replace(/2ᵉ/g, "2e")
     .replace(/—/g, "-")
     .replace(/\[img-\d+\.jpeg\]/g, "")
-    .replace(/([A-Z][A-Z\s]+):/g, '\n\n$1:')
-    .replace(/\n\s*\n/g, '\n\n');
+    // Remplacer les sauts de ligne multiples par des doubles sauts de ligne
+    .replace(/\n\s*\n\s*\n/g, '\n\n')
+    // Remplacer les sauts de ligne simples par des espaces, sauf s'ils sont suivis d'une majuscule ou d'un chiffre
+    .replace(/\n([a-z])/g, ' $1')
+    .replace(/\n(\d)/g, ' $1')
+    // Conserver les sauts de ligne avant les titres et les paragraphes
+    .replace(/\n\s*([A-Z][A-Z\s]+:)/g, '\n\n$1')
+    .replace(/\n\s*(\d+\.)/g, '\n\n$1');
 };
+
 
 
 
