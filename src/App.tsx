@@ -157,13 +157,16 @@ export default function App() {
   };
 
   const cleanText = (text: string) => {
-    return text
-      .replace(/1ᵉʳ/g, "1er")
-      .replace(/2ᵉ/g, "2e")
-      .replace(/—/g, "-")
-      .replace(/\n\s*\n/g, "\n\n")
-      .replace(/\[img-\d+\.jpeg\]/g, "");
-  };
+  return text
+    .replace(/1ᵉʳ/g, "1er")
+    .replace(/2ᵉ/g, "2e")
+    .replace(/—/g, "-")
+    .replace(/\[img-\d+\.jpeg\]/g, "")
+    // Conserver les sauts de ligne existants et ajouter des sauts de ligne après les titres
+    .replace(/([A-Z][A-Z\s]+):/g, '\n\n$1:') // Ajouter des sauts de ligne avant les titres
+    .replace(/\n\s*\n/g, '\n\n'); // Normaliser les sauts de ligne multiples
+};
+
 
   const processOCR = async () => {
   if (files.length === 0) return;
