@@ -663,6 +663,35 @@ export default function App() {
           </p>
         </div>
       </footer>
+      // Ajoute ceci à la fin de ton fichier App.tsx, juste avant la balise </div> de fermeture
+<style jsx global>{`
+  .prose :where(p):not(:last-child) {
+    margin-bottom: 1em;
+  }
+  .prose :where(pre):not(:last-child) {
+    margin-bottom: 1.5em;
+  }
+  .prose :where(h1):not(:last-child) {
+    margin-top: 2em;
+    margin-bottom: 1em;
+  }
+  .prose :where(h2):not(:last-child) {
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+  }
+  .prose :where(h3):not(:last-child) {
+    margin-top: 1.25em;
+    margin-bottom: 0.5em;
+  }
+  .prose :where(ul):not(:last-child),
+  .prose :where(ol):not(:last-child) {
+    margin-bottom: 1em;
+  }
+  .prose :where(li):not(:last-child) {
+    margin-bottom: 0.5em;
+  }
+`}
+</style>
       </div>
   );
 }
