@@ -166,99 +166,113 @@ export default function App() {
   };
 
   const processOCR = async () => {
-    if (files.length === 0) return;
+  if (files.length === 0) return;
 
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
-    if (files[0].size > MAX_FILE_SIZE) {
-      setError("Le fichier est trop volumineux (max 10 Mo).");
-      return;
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
+  if (files[0].size > MAX_FILE_SIZE) {
+    setError("Le fichier est trop volumineux (max 10 Mo).");
+    return;
+  }
+
+  setIsProcessing(true);
+  setError(null);
+  setResult(null);
+  setProgress(0);
+
+  try {
+    const arrayBuffer = await files[0].arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({
+      data: arrayBuffer,
+      disableAutoFetch: false,
+      cMapUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/cmaps/`,
+      cMapPacked: true,
+    }).promise;
+
+    let fullText = "";
+    const numPages = pdf.numPages;
+
+    // Traiter chaque page du PDF
+    for (let i = 1; i <= numPages; i++) {
+      setProgress(((i - 1) / numPages) * 90);
+
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+
+      // Extraire le texte avec les sauts de ligne
+      let pageText = "";
+      let lastY = -1;
+      for (const item of textContent.items) {
+        if (item.str && item.transform) {
+          const currentY = item.transform[5];
+          if (lastY !== -1 && Math.abs(currentY - lastY) > 2) { // Si la différence de position verticale est significative, ajouter un saut de ligne
+            pageText += "\n";
+          }
+          pageText += item.str + " ";
+          lastY = currentY;
+        }
+      }
+      fullText += pageText + "\n\n"; // Ajouter un double saut de ligne entre les pages
     }
 
-    setIsProcessing(true);
-    setError(null);
-    setResult(null);
-    setProgress(0);
+    setProgress(95);
 
-    try {
-      const arrayBuffer = await files[0].arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({
-        data: arrayBuffer,
-        disableAutoFetch: false,
-        cMapUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/cmaps/`,
-        cMapPacked: true,
-      }).promise;
+    // Optionnel : Envoyer le texte complet à Mistral pour nettoyage
+    if (process.env.NEXT_PUBLIC_MISTRAL_API_KEY) {
+      const response = await fetch("/api/ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: fullText.substring(0, 30000), // Limiter à 30k caractères pour éviter les timeouts
+          model: "mistral-small",
+          prompt: "Nettoie et structure ce texte juridique extrait d'un PDF. Conserve les dates, titres, paragraphs, et métadonnées. Retourne le résultat en Markdown avec des sauts de ligne appropriés.",
+        }),
+      });
 
-      let fullText = "";
-      const numPages = pdf.numPages;
+      const data = await response.json();
+      const cleanedText = data.text || cleanText(fullText);
+      const metadata = extractMetadata(cleanedText);
 
-      // Traiter chaque page du PDF
-      for (let i = 1; i <= numPages; i++) {
-        setProgress(((i - 1) / numPages) * 90);
+      setProgress(100);
 
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(" ");
-        fullText += pageText + "\n\n";
-      }
+      const newResult = {
+        text: cleanedText,
+        timestamp: Date.now(),
+        fileName: files[0].name,
+        metadata: metadata,
+      };
 
-      setProgress(95);
+      setResult(newResult);
+      const newHistory = [newResult, ...history].slice(0, 5);
+      setHistory(newHistory);
+      localStorage.setItem('ocr_history', JSON.stringify(newHistory));
+    } else {
+      // Mode dégradé : utiliser le texte brut
+      const cleanedText = cleanText(fullText);
+      const metadata = extractMetadata(cleanedText);
 
-      // Optionnel : Envoyer le texte complet à Mistral pour nettoyage
-      if (process.env.NEXT_PUBLIC_MISTRAL_API_KEY) {
-        const response = await fetch("/api/ocr", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: fullText.substring(0, 30000), // Limiter à 30k caractères pour éviter les timeouts
-            model: "mistral-small",
-            prompt: "Nettoie et structure ce texte juridique extrait d'un PDF. Conserve les dates, titres, paragraphs, et métadonnées. Retourne le résultat en Markdown.",
-          }),
-        });
+      setProgress(100);
 
-        const data = await response.json();
-        const cleanedText = data.text || cleanText(fullText);
-        const metadata = extractMetadata(cleanedText);
+      const newResult = {
+        text: cleanedText,
+        timestamp: Date.now(),
+        fileName: files[0].name,
+        metadata: metadata,
+      };
 
-        setProgress(100);
-
-        const newResult = {
-          text: cleanedText,
-          timestamp: Date.now(),
-          fileName: files[0].name,
-          metadata: metadata,
-        };
-
-        setResult(newResult);
-        const newHistory = [newResult, ...history].slice(0, 5);
-        setHistory(newHistory);
-        localStorage.setItem('ocr_history', JSON.stringify(newHistory));
-      } else {
-        // Mode dégradé : utiliser le texte brut
-        const cleanedText = cleanText(fullText);
-        const metadata = extractMetadata(cleanedText);
-
-        setProgress(100);
-
-        const newResult = {
-          text: cleanedText,
-          timestamp: Date.now(),
-          fileName: files[0].name,
-          metadata: metadata,
-        };
-
-        setResult(newResult);
-        const newHistory = [newResult, ...history].slice(0, 5);
-        setHistory(newHistory);
-        localStorage.setItem('ocr_history', JSON.stringify(newHistory));
-      }
-
-    } catch (err: any) {
-      console.error("Erreur complète :", err);
-      setError(err.message || "Une erreur est survenue lors de l'extraction.");
-    } finally {
-      setIsProcessing(false);
+      setResult(newResult);
+      const newHistory = [newResult, ...history].slice(0, 5);
+      setHistory(newHistory);
+      localStorage.setItem('ocr_history', JSON.stringify(newHistory));
     }
-  };
+
+  } catch (err: any) {
+    console.error("Erreur complète :", err);
+    setError(err.message || "Une erreur est survenue lors de l'extraction.");
+  } finally {
+    setIsProcessing(false);
+  }
+};
+
 
   const copyToClipboard = () => {
     if (result) {
