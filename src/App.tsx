@@ -616,19 +616,25 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Texte extrait */}
-                  <div className="markdown-body animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <Markdown
-  components={{
-    p: ({ children }) => <p className="mb-4">{children}</p>,
-  }}
->
-  {result.text}
-</Markdown>
-
-                  </div>
-                </>
-              )}
+                 {/* Texte extrait avec des classes Tailwind pour les sauts de ligne */}
+    <div className="prose max-w-none animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <Markdown
+        components={{
+          p: ({ children }) => <p className="mb-4">{children}</p>,
+          pre: ({ children }) => <pre className="whitespace-pre-wrap break-words mb-4 bg-gray-100 p-4 rounded">{children}</pre>,
+          h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 mt-6">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-xl font-bold mb-3 mt-5">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-lg font-bold mb-2 mt-4">{children}</h3>,
+          ul: ({ children }) => <ul className="list-disc pl-5 mb-4">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal pl-5 mb-4">{children}</ol>,
+          li: ({ children }) => <li className="mb-2">{children}</li>,
+        }}
+      >
+        {result.text}
+      </Markdown>
+    </div>
+  </>
+)}
             </div>
 
             {result && (
