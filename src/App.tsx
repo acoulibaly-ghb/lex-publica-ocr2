@@ -618,7 +618,14 @@ export default function App() {
 
                   {/* Texte extrait */}
                   <div className="markdown-body animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <Markdown>{result.text}</Markdown>
+                    <Markdown
+  components={{
+    p: ({ children }) => <p className="mb-4">{children}</p>,
+  }}
+>
+  {result.text}
+</Markdown>
+
                   </div>
                 </>
               )}
