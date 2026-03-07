@@ -583,51 +583,57 @@ export default function App() {
               )}
 
               {result && (
-                <>
-                  {/* Affichage des métadonnées si disponibles */}
-                  {result.metadata && (
-                    <div className="mb-8 p-4 bg-zinc-50 border border-zinc-200 rounded-lg shadow-inner">
-                      <h3 className="text-sm font-serif font-bold text-zinc-900 mb-2 flex items-center gap-2">
-                        <FileSearch className="w-4 h-4 text-[#D4AF37]" />
-                        Métadonnées Juridiques
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        {result.metadata.date && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-zinc-500">Date:</span>
-                            <span className="font-medium text-zinc-900">{result.metadata.date}</span>
-                          </div>
-                        )}
-                        {result.metadata.caseNumber && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-zinc-500">Référence:</span>
-                            <span className="font-medium text-zinc-900">{result.metadata.caseNumber}</span>
-                          </div>
-                        )}
-                        {result.metadata.parties && result.metadata.parties.length > 0 && (
-                          <div className="flex items-center gap-1.5 col-span-1 sm:col-span-2">
-                            <span className="text-zinc-500">Parties:</span>
-                            <span className="font-medium text-zinc-900">
-                              {result.metadata.parties.join(" vs. ")}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+  <>
+    {/* Affichage des métadonnées si disponibles */}
+    {result.metadata && (
+      <div className="mb-8 p-4 bg-zinc-50 border border-zinc-200 rounded-lg shadow-inner">
+        <h3 className="text-sm font-serif font-bold text-zinc-900 mb-2 flex items-center gap-2">
+          <FileSearch className="w-4 h-4 text-[#D4AF37]" />
+          Métadonnées Juridiques
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          {result.metadata.date && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-zinc-500">Date:</span>
+              <span className="font-medium text-zinc-900">{result.metadata.date}</span>
+            </div>
+          )}
+          {result.metadata.caseNumber && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-zinc-500">Référence:</span>
+              <span className="font-medium text-zinc-900">{result.metadata.caseNumber}</span>
+            </div>
+          )}
+          {result.metadata.parties && result.metadata.parties.length > 0 && (
+            <div className="flex items-center gap-1.5 col-span-1 sm:col-span-2">
+              <span className="text-zinc-500">Parties:</span>
+              <span className="font-medium text-zinc-900">
+                {result.metadata.parties.join(" vs. ")}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
 
-                 {/* Texte extrait avec des classes Tailwind pour les sauts de ligne */}
+    {/* Texte extrait avec des classes Tailwind pour les sauts de ligne */}
     <div className="prose max-w-none animate-in fade-in slide-in-from-bottom-4 duration-700">
       <Markdown
         components={{
           p: ({ children }) => <p className="mb-4">{children}</p>,
-          pre: ({ children }) => <pre className="whitespace-pre-wrap break-words mb-4 bg-gray-100 p-4 rounded">{children}</pre>,
+          pre: ({ children }) => (
+            <pre className="whitespace-pre-wrap break-words mb-4 bg-gray-100 p-4 rounded">
+              {children}
+            </pre>
+          ),
           h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 mt-6">{children}</h1>,
           h2: ({ children }) => <h2 className="text-xl font-bold mb-3 mt-5">{children}</h2>,
           h3: ({ children }) => <h3 className="text-lg font-bold mb-2 mt-4">{children}</h3>,
           ul: ({ children }) => <ul className="list-disc pl-5 mb-4">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal pl-5 mb-4">{children}</ol>,
           li: ({ children }) => <li className="mb-2">{children}</li>,
+          // Ajoute un composant pour les sauts de ligne simples
+          br: () => <br className="block my-2" />,
         }}
       >
         {result.text}
@@ -635,6 +641,7 @@ export default function App() {
     </div>
   </>
 )}
+
             </div>
 
             {result && (
