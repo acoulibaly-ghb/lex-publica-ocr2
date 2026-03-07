@@ -205,72 +205,47 @@ export default function App() {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
 
-      // Extraire le texte avec les sauts de ligne
+      // Extraire le texte avec des sauts de ligne naturels
       let pageText = "";
       let lastY = -1;
+      let lastFontSize = 0;
       for (const item of textContent.items) {
         if (item.str && item.transform) {
           const currentY = item.transform[5];
-          if (lastY !== -1 && Math.abs(currentY - lastY) > 2) { // Si la différence de position verticale est significative, ajouter un saut de ligne
+          const currentFontSize = item.height; // Approximation de la taille de la police
+
+          // Ajouter un saut de ligne si la différence de position verticale est significative
+          // ou si la taille de la police a changé (nouveau paragraphe)
+          if (lastY !== -1 && (Math.abs(currentY - lastY) > 3 || Math.abs(currentFontSize - lastFontSize) > 1)) {
             pageText += "\n";
           }
           pageText += item.str + " ";
           lastY = currentY;
+          lastFontSize = currentFontSize;
         }
       }
-      fullText += pageText + "\n\n"; // Ajouter un double saut de ligne entre les pages
+      fullText += pageText.trim() + "\n\n"; // Ajouter un double saut de ligne entre les pages
     }
 
     setProgress(95);
 
-    // Optionnel : Envoyer le texte complet à Mistral pour nettoyage
-    if (process.env.NEXT_PUBLIC_MISTRAL_API_KEY) {
-      const response = await fetch("/api/ocr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: fullText.substring(0, 30000), // Limiter à 30k caractères pour éviter les timeouts
-          model: "mistral-small",
-          prompt: "Nettoie et structure ce texte juridique extrait d'un PDF. Conserve les dates, titres, paragraphs, et métadonnées. Retourne le résultat en Markdown avec des sauts de ligne appropriés.",
-        }),
-      });
+    // Nettoyer le texte extrait
+    const cleanedText = cleanText(fullText);
+    const metadata = extractMetadata(cleanedText);
 
-      const data = await response.json();
-      const cleanedText = data.text || cleanText(fullText);
-      const metadata = extractMetadata(cleanedText);
+    setProgress(100);
 
-      setProgress(100);
+    const newResult = {
+      text: cleanedText,
+      timestamp: Date.now(),
+      fileName: files[0].name,
+      metadata: metadata,
+    };
 
-      const newResult = {
-        text: cleanedText,
-        timestamp: Date.now(),
-        fileName: files[0].name,
-        metadata: metadata,
-      };
-
-      setResult(newResult);
-      const newHistory = [newResult, ...history].slice(0, 5);
-      setHistory(newHistory);
-      localStorage.setItem('ocr_history', JSON.stringify(newHistory));
-    } else {
-      // Mode dégradé : utiliser le texte brut
-      const cleanedText = cleanText(fullText);
-      const metadata = extractMetadata(cleanedText);
-
-      setProgress(100);
-
-      const newResult = {
-        text: cleanedText,
-        timestamp: Date.now(),
-        fileName: files[0].name,
-        metadata: metadata,
-      };
-
-      setResult(newResult);
-      const newHistory = [newResult, ...history].slice(0, 5);
-      setHistory(newHistory);
-      localStorage.setItem('ocr_history', JSON.stringify(newHistory));
-    }
+    setResult(newResult);
+    const newHistory = [newResult, ...history].slice(0, 5);
+    setHistory(newHistory);
+    localStorage.setItem('ocr_history', JSON.stringify(newHistory));
 
   } catch (err: any) {
     console.error("Erreur complète :", err);
@@ -279,8 +254,6 @@ export default function App() {
     setIsProcessing(false);
   }
 };
-
-
 
   const copyToClipboard = () => {
     if (result) {
